@@ -1,0 +1,10 @@
+flask
+flask_sqlalchemy
+flask_jwt_extended
+sqlalchemy
+pymysql
+werkzeug
+python-dotenv
+gunicorn
+flasgger
+PyYAML
