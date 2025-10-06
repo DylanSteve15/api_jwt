@@ -1,79 +1,52 @@
-"""
-Servicio para el modelo Horario.
-Aquí se maneja la lógica de negocio relacionada con horarios.
-"""
-
-from repositories.horario_repository import HorarioRepository
-import logging
-
-logger = logging.getLogger(__name__)
+from models.horario_model import Horario
+from app import db
 
 class HorarioService:
+    @staticmethod
+    def get_all():
+        """Obtiene todos los horarios registrados"""
+        return Horario.query.all()
 
     @staticmethod
-    def create_horario(estudiante_id, dia, hora_inicio, hora_fin, materia):
-        from models.db import db
-        logger.info(f'Creando horario en servicio para estudiante ID: {estudiante_id}')
-
-        horario = HorarioRepository.create_horario(estudiante_id, dia, hora_inicio, hora_fin, materia, db.session)
-
-        logger.info(f'Horario creado en servicio (ID: {horario.id}) para estudiante {estudiante_id}')
-        return horario
+    def get_by_id(horario_id):
+        """Obtiene un horario por su ID"""
+        return Horario.query.get(horario_id)
 
     @staticmethod
-    def get_horario_by_id(horario_id):
-        from models.db import db
-        logger.info(f'Buscando horario por ID en servicio: {horario_id}')
+    def create(data):
+        """Crea un nuevo horario"""
+        nuevo_horario = Horario(
+            usuario_id=data.get('usuario_id'),
+            dia=data.get('dia'),
+            hora_inicio=data.get('hora_inicio'),
+            hora_fin=data.get('hora_fin'),
+            descripcion=data.get('descripcion')
+        )
+        db.session.add(nuevo_horario)
+        db.session.commit()
+        return nuevo_horario
 
-        horario = HorarioRepository.get_by_id(horario_id, db.session)
+    @staticmethod
+    def update(horario_id, data):
+        """Actualiza un horario existente"""
+        horario = Horario.query.get(horario_id)
         if not horario:
-            logger.warning(f'Horario no encontrado en servicio: {horario_id}')
+            return None
+
+        horario.dia = data.get('dia', horario.dia)
+        horario.hora_inicio = data.get('hora_inicio', horario.hora_inicio)
+        horario.hora_fin = data.get('hora_fin', horario.hora_fin)
+        horario.descripcion = data.get('descripcion', horario.descripcion)
+
+        db.session.commit()
         return horario
 
     @staticmethod
-    def get_horarios_by_estudiante(estudiante_id):
-        from models.db import db
-        logger.info(f'Buscando horarios por estudiante en servicio: {estudiante_id}')
-
-        horarios = HorarioRepository.get_by_estudiante(estudiante_id, db.session)
-
-        logger.info(f'{len(horarios)} horarios obtenidos en servicio para estudiante {estudiante_id}')
-        return horarios
-
-    @staticmethod
-    def get_all_horarios():
-        from models.db import db
-        logger.info('Obteniendo todos los horarios en servicio')
-
-        horarios = HorarioRepository.get_all(db.session)
-
-        logger.info(f'{len(horarios)} horarios obtenidos en servicio')
-        return horarios
-
-    @staticmethod
-    def update_horario(horario_id, dia, hora_inicio, hora_fin, materia):
-        from models.db import db
-        logger.info(f'Actualizando horario en servicio: {horario_id}')
-
-        horario = HorarioRepository.update_horario(horario_id, dia, hora_inicio, hora_fin, materia, db.session)
-
-        if horario:
-            logger.info(f'Horario actualizado en servicio: {horario_id}')
-        else:
-            logger.warning(f'No se encontró horario para actualizar en servicio: {horario_id}')
-
-        return horario
-
-    @staticmethod
-    def delete_horario(horario_id):
-        from models.db import db
-        logger.info(f'Eliminando horario en servicio: {horario_id}')
-
-        success = HorarioRepository.delete_horario(horario_id, db.session)
-
-        if success:
-            logger.info(f'Horario eliminado en servicio: {horario_id}')
-        else:
-            logger.warning(f'No se encontró horario para eliminar en servicio: {horario_id}')
-
-        return success
+    def delete(horario_id):
+        """Elimina un horario por ID"""
+        horario = Horario.query.get(horario_id)
+        if not horario:
+            return False
+        db.session.delete(horario)
+        db.session.commit()
+        return True
